@@ -1,4 +1,5 @@
 import { ALLERGEN_NOTICE } from "@/lib/contracts/chat";
+import { KitchenIcon } from "@/components/kitchen-icon";
 import type { Turn } from "@/lib/client/use-chat";
 
 export function ChatAnswer({
@@ -16,11 +17,11 @@ export function ChatAnswer({
   const pending = unresolved || response.inventoryProposal !== null;
   return (
     <article className="turn assistant-turn" aria-label="PantryPal response">
-      <p className="speaker">PantryPal</p>
+      <p className="speaker"><span className="answer-mark"><KitchenIcon /></span>PantryPal</p>
       <div className="message-content">{response.message.content}</div>
       {response.equipmentChecks.length > 0 ? (
         <section className="equipment-results" aria-label="Equipment checks">
-          <h3>Equipment checks</h3>
+          <h3><KitchenIcon name="pot" />Equipment checks</h3>
           {old && (
             <p className="inline-note">
               Older kitchen setup — these checks do not verify your current
@@ -80,12 +81,12 @@ export function ChatAnswer({
       )}
       {response.sources.length > 0 && (
         <section className="sources" aria-label="Sources">
-          <h3>Sources</h3>
+          <h3><KitchenIcon name="book" />Sources</h3>
           <ul>
             {response.sources.map((source, index) => (
               <li key={`${source.url}-${index}`}>
                 <a href={source.url} target="_blank" rel="noopener noreferrer">
-                  {source.title}
+                  {source.title}<KitchenIcon name="arrow" />
                   <span className="sr-only"> (opens in a new tab)</span>
                 </a>
               </li>

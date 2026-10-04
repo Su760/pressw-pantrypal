@@ -5,6 +5,7 @@ import { ALLERGEN_NOTICE, CHAT_LIMITS } from "@/lib/contracts/chat";
 import { useChat } from "@/lib/client/use-chat";
 import { KitchenPanel } from "@/components/kitchen-panel";
 import { ChatAnswer } from "@/components/chat-answer";
+import { KitchenIcon } from "@/components/kitchen-icon";
 
 export default function Home() {
   const chat = useChat();
@@ -55,10 +56,11 @@ export default function Home() {
       </a>
       <header className="app-header">
         <div className="brand">
-          PantryPal<span>A little help in the kitchen.</span>
+          <span className="brand-mark"><KitchenIcon /></span>
+          <div>PantryPal<span className="brand-caption">Your kitchen notebook</span></div>
         </div>
         <div className="header-actions">
-          <span className="session-tag">Just this session</span>
+          <span className="session-tag"><span className="state-dot" aria-hidden="true" /> Just this session</span>
           <button className="quiet" onClick={clearSession}>
             Clear session
           </button>
@@ -78,7 +80,7 @@ export default function Home() {
               : state.profile.equipment.status === "unknown"
                 ? "Equipment unknown"
                 : "Equipment confirmed"}{" "}
-            · {kitchenOpen ? "Close" : "Edit"}
+            · {kitchenOpen ? "Back to chat" : "Edit"}
           </span>
         </button>
         <div
@@ -99,6 +101,7 @@ export default function Home() {
           </div>
           <KitchenPanel
             draft={state.kitchen}
+            profile={state.profile}
             dirty={state.kitchenDirty}
             error={state.kitchenError}
             unresolved={state.correctionUnresolved}
@@ -109,7 +112,7 @@ export default function Home() {
       </aside>
       <main className="chat-main" aria-labelledby="chat-heading">
         <div className="chat-heading-row">
-          <h1 id="chat-heading">Let’s talk cooking</h1>
+          <h1 id="chat-heading"><KitchenIcon name="book" />Let’s talk cooking</h1>
           <span className="small-tag">Adults-only prototype</span>
         </div>
         <div
@@ -129,31 +132,23 @@ export default function Home() {
         >
           {state.turns.length === 0 && (
             <section className="welcome">
-              <p className="welcome-heading">
-                Good food starts
-                <br />
-                with what you have.
-              </p>
-              <p>
-                Bring your ingredients, your questions, and your very real
-                kitchen. We’ll work from there.
-              </p>
+              <div className="welcome-note"><span className="note-rule" />Pull up a chair.</div>
+              <h2 className="welcome-heading">A little inspiration.<br />A kitchen that’s yours.</h2>
+              <p>Something in the pantry, a technique to try, or tonight’s dinner. Let’s start with what you have.</p>
               <div className="starter-prompts" aria-label="Message ideas">
                 {[
-                  "What can I make with chickpeas, tomatoes, and rice?",
-                  "How do I build more flavor into a simple soup?",
-                ].map((prompt) => (
-                  <button
-                    key={prompt}
-                    onClick={() => {
-                      chat.setDraft(prompt);
-                      composer.current?.focus();
-                    }}
-                  >
-                    {prompt}
+                  { label: "Use what’s here", detail: "Turn a few ingredients into a starting point.", icon: "leaf" as const, prompt: "What can I make with chickpeas, tomatoes, and rice?" },
+                  { label: "Learn a technique", detail: "A little know-how for your next meal.", icon: "spoon" as const, prompt: "How do I build more flavor into a simple soup?" },
+                  { label: "Work with my kitchen", detail: "Cooking ideas for the equipment I have.", icon: "pot" as const, prompt: "Can you help me plan a meal using my confirmed kitchen equipment? Ask me about anything you still need to know." },
+                ].map(({ label, detail, icon, prompt }) => (
+                  <button key={label} type="button" onClick={() => { chat.setDraft(prompt); composer.current?.focus(); }}>
+                    <KitchenIcon name={icon} className="starter-icon" />
+                    <span className="starter-label">{label}</span><span className="starter-detail">{detail}</span>
+                    <span className="starter-action">Start a question <KitchenIcon name="arrow" /></span>
                   </button>
                 ))}
               </div>
+              <p className="welcome-footnote">Your kitchen notes are always editable.</p>
             </section>
           )}
           <div className="turns">
@@ -180,9 +175,7 @@ export default function Home() {
               <div className="loading-note">
                 <span className="loading-dot" aria-hidden="true" />
                 Thinking through your question…
-                <button className="text-button" onClick={chat.cancel}>
-                  Cancel request
-                </button>
+
               </div>
             )}
             {state.proposal && (
@@ -335,29 +328,13 @@ export default function Home() {
                 }
               }}
             />
-            <button
-              type="submit"
-              className="primary send-button"
-              disabled={
-                blocked ||
-                pending ||
-                state.loading ||
-                full ||
-                !state.draft.trim()
-              }
-            >
-              Send message
-            </button>
+            <div className="composer-toolbar">
+              <p id="composer-hint">Enter for a new line.<span> Ctrl / ⌘ + Enter to send.</span></p>
+              {state.loading ? <button type="button" className="cancel-button" onClick={chat.cancel}><KitchenIcon name="stop" />Cancel request</button> :
+                <button type="submit" className="primary send-button" disabled={blocked || pending || state.loading || full || !state.draft.trim()}>Send message<KitchenIcon name="arrow" /></button>}
+            </div>
           </form>
-          <div className="composer-footer">
-            <p id="composer-hint">
-              Enter for a new line. Ctrl / ⌘ + Enter to send.
-            </p>
-            <span>
-              {state.draft.length.toLocaleString()} /{" "}
-              {CHAT_LIMITS.maxMessageCharacters.toLocaleString()}
-            </span>
-          </div>
+          <div className="composer-footer"><span>For cooking inspiration. Always use your own judgment.</span><span>{state.draft.length.toLocaleString()} / {CHAT_LIMITS.maxMessageCharacters.toLocaleString()}</span></div>
           <p
             className="status-line"
             role="status"
