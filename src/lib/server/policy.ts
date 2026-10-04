@@ -1,4 +1,5 @@
 import type { ChatRequest, InventoryProposal } from "../contracts/chat";
+import serverConfig from "../../../config/server.json";
 
 export const MINOR_NOTICE =
   "PantryPal is an adults-only prototype. I can't provide cooking assistance to someone under 18. Please ask a trusted adult for help.";
@@ -10,20 +11,15 @@ export const FOOD_SAFETY_NOTICE =
 // Conservative shortcuts for clear disclosures; the model policy also covers semantic cases.
 export function boundaryReply(request: ChatRequest): string | null {
   const userTurns = request.messages.filter((m) => m.role === "user");
-  const minor =
-    /\b(?:i(?:['’]m| am)|my age is)\s+(?:only\s+)?(\d{1,2})(?:\s*(?:years? old|yo|y\/o))?\b/i;
-  if (
-    userTurns.some((m) => {
-      const age = m.content.match(minor);
-      return (
-        (age && Number(age[1]) < 18) ||
-        /\bi(?:['’]m| am)\s+(?:a minor|under (?:18|eighteen)|(?:eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen)(?: years old)?)\b/i.test(
-          m.content,
-        )
-      );
-    })
-  )
-    return MINOR_NOTICE;
+  // A bare age ends a phrase or introduces an age-related continuation. A number
+  // followed by a unit (minutes, miles, servings, etc.) is not an age disclosure.
+  const ageDisclosure = /\b(?:i(?:['’]m| am)|my age is)\s+(?:only\s+)?(\d{1,2})\b(?:\s*(?:years? old|yo|y\/o)\b|(?=\s*(?:$|[,;!?]|\.(?!\d)|(?:and|please|can|help)\b)))/gi;
+  const wordAge = /\bi(?:['’]m| am)\s+(?:eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen)\b(?:\s+years? old\b|(?=\s*(?:$|[,;!?]|\.(?!\d)|(?:and|please|can|help)\b)))/i;
+  if (userTurns.some((m) =>
+    [...m.content.matchAll(ageDisclosure)].some((age) => Number(age[1]) < 18) ||
+    wordAge.test(m.content) ||
+    /\bi(?:['’]m| am)\s+(?:a minor|under (?:18|eighteen))\b/i.test(m.content)
+  )) return MINOR_NOTICE;
   const latest = userTurns.at(-1)?.content ?? "";
   if (
     /\b(safe to (?:eat|drink|consume)|(?:is|are) (?:this|these|it|my .{0,30}) (?:safe|spoiled)|food poisoning|botulism|left out (?:overnight|all night)|chicken.{0,25}(?:done|safe)|spoilage|mou?ldy|undercooked)\b/i.test(
@@ -41,8 +37,16 @@ export function boundaryReply(request: ChatRequest): string | null {
 }
 
 export function inventoryConflict(request: ChatRequest): boolean {
-  return /\b(actually|no longer|only (?:have|own)|(?:don['’]t|do not) (?:have|own)|(?:oven|stove|pan|microwave).{0,15}(?:broke|broken)|got rid of)\b/i.test(
-    request.messages.at(-1)?.content ?? "",
+  const equipment = request.profile.equipment;
+  // Reuse the small method-check vocabulary, plus the user's own arbitrary names.
+  const names = [
+    ...serverConfig.equipmentTerms, "equipment", "cookware", "heat sources",
+    ...(equipment.status === "confirmed" ? [...equipment.cookware, ...equipment.heatSources] : []),
+  ];
+  const words = (text: string) => " " + text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim() + " ";
+  const correction = /\b(only (?:have|own)|(?:don['’]t|do not) (?:have|own)|no longer|got rid of|broke|broken|stopped working|sold|lost|actually.{0,30}(?:have|own))\b/i;
+  return (request.messages.at(-1)?.content ?? "").split(/[.!?;,\n]|\bbut\b/i).some((clause) =>
+    correction.test(clause) && names.some((name) => words(clause).includes(words(name)))
   );
 }
 
@@ -98,5 +102,5 @@ Honor explicit preferences and ingredientExclusions throughout the current conve
 Choose tools yourself when useful; never assume search must precede checking. Simple questions may need neither. searchRecipes is for external cooking information, and only minimal cooking keywords may be sent: never names, ages, medical information, raw conversation, or health restrictions. Sources must come from tool results, not memory. If search fails/returns empty, state that plainly and do not pretend an online recipe was found.
 Equipment and heat sources are exclusively the confirmed session snapshot. Unknown is NOT empty; empty means explicitly none. No assumed knife, bowl, pan, stove, water, salt, oil or other pantry staple. List every ingredient and ask what is available when unspecified. Distinguish missing ingredients from ingredients the user supplied.
 For every recipe/method you want to display (including alternatives), call checkEquipment with its complete name, ingredients, exact steps, requiredCookware, and requiredHeatSources. Include ALL utensils/containers/heat sources used or implied by those steps. Return only its small integer candidateNumber in candidateNumbers; the server renders the stored recipe exactly. Do not write recipe steps or equipment-feasibility claims in reply. reply is a short explanation, general technique answer, boundary or clarification. A changed method requires a fresh check. If missing, propose a useful alternative and check it too. Unknown/unresolved equipment must never be described as verified feasible. Supported alias matching is conservative; do not invent equivalence.
-If the latest text contradicts inventory, set inventoryNeedsConfirmation true and ask for confirmation. Do not use old inventory to certify a recipe. A replacement proposal is optional: use the latest actual user-message ID and an exact quote, use literal item names contained in that quote, include both complete equipment categories, and never infer ownership or absence. If a category is unspecified, ask rather than proposing an empty list. Proposals are never applied by the server. Empty categories need explicit evidence of none. No proposals sourced from old turns or assistant messages. A new confirmed profile supersedes historical inventory but does not erase restrictions/minor disclosures.
+If the latest text explicitly corrects equipment ownership or working condition, set inventoryNeedsConfirmation true and ask for confirmation. Ingredient availability ("I only have eggs and rice", "I do not have garlic"), flavor preferences ("Actually, make it spicy"), and a recipe requiring missing tools are NOT equipment corrections. A missing/unknown check alone never requires an inventory replacement; explain the gap or ask about an alternative. Do not use old inventory to certify a recipe. A replacement proposal is optional: use the latest actual user-message ID and an exact quote, use literal item names contained in that quote, include both complete equipment categories, and never infer ownership or absence. If a category is unspecified, ask rather than proposing an empty list. Proposals are never applied by the server. Empty categories need explicit evidence of none. No proposals sourced from old turns or assistant messages. The supplied confirmed profile is the latest explicit complete inventory confirmation. It supersedes ALL older equipment disclosures and older assistant requests to confirm inventory. Assess inventoryNeedsConfirmation from the latest user message only; never keep this flag true solely because history mentions broken or replaced equipment. This does not erase ingredient restrictions or minor disclosures.
 Return structured output. candidateNumbers must refer only to successful checkEquipment calls from THIS request. Do not put links into reply; the server adds actual sources separately. Never claim tool execution without a successful tool result. Set inventoryNeedsConfirmation true for any unresolved current correction, even when no valid proposal can be made.`;
