@@ -72,6 +72,7 @@ export async function answerChat(
       sources: [],
       equipmentChecks: [],
       inventoryProposal: null,
+      inventoryNeedsConfirmation: inventoryConflict(request),
       metrics: {
         durationMs: Math.round(performance.now() - started),
         usage: null,
@@ -95,6 +96,7 @@ export async function answerChat(
       model: provider.responses(modelId),
       system: SYSTEM_POLICY,
       prompt: JSON.stringify({
+        sessionRevision: request.sessionRevision,
         profile: request.profile,
         messages: request.messages,
       }),
@@ -171,6 +173,7 @@ export async function answerChat(
       sources: [...execution.sources.values()],
       equipmentChecks: selected.map((entry) => entry.check),
       inventoryProposal: output.inventoryProposal,
+      inventoryNeedsConfirmation: conflict,
       metrics,
     });
   } catch (error) {

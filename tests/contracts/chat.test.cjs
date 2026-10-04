@@ -326,9 +326,6 @@ test("inventory proposals require a complete confirmed replacement and bounded e
 
 test(
   "R1: duplicate UUIDs differing only in letter case must be rejected",
-  {
-    todo: "R1: shared IdSchema/uniqueness fix belongs to LEAD; see docs/REVIEW.md",
-  },
   () => {
     const req = { ...request(), messages: history(3) };
     req.messages[0].id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";

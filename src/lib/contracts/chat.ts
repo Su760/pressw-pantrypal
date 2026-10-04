@@ -52,7 +52,7 @@ export const ChatRequestSchema = z.strictObject({
   profile: SessionProfileSchema,
   messages: z.array(ChatMessageSchema).min(1).max(limits.maxMessages),
 }).superRefine((request, ctx) => {
-  const ids = new Set(request.messages.map((message) => message.id));
+  const ids = new Set(request.messages.map((message) => message.id.toLowerCase()));
   if (ids.size !== request.messages.length) {
     ctx.addIssue({ code: "custom", path: ["messages"], message: "Message IDs must be unique." });
   }
@@ -117,6 +117,7 @@ export const ChatSuccessSchema = z.strictObject({
   sources: z.array(SourceSchema).max(limits.maxSources),
   equipmentChecks: z.array(EquipmentCheckSchema).max(limits.maxEquipmentChecks),
   inventoryProposal: InventoryProposalSchema.nullable(),
+  inventoryNeedsConfirmation: z.boolean().default(false),
   metrics: z.strictObject({
     durationMs: z.number().nonnegative(),
     usage: z.strictObject({
