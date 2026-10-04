@@ -75,11 +75,13 @@ export default function Home() {
         >
           Your kitchen{" "}
           <span>
-            {state.kitchenDirty
-              ? "Unsaved changes"
-              : state.profile.equipment.status === "unknown"
-                ? "Equipment unknown"
-                : "Equipment confirmed"}{" "}
+            {state.correctionUnresolved
+              ? "Needs confirmation"
+              : state.kitchenDirty
+                ? "Unsaved changes"
+                : state.profile.equipment.status === "unknown"
+                  ? "Equipment unknown"
+                  : "Equipment confirmed"}{" "}
             · {kitchenOpen ? "Back to chat" : "Edit"}
           </span>
         </button>
@@ -92,11 +94,13 @@ export default function Home() {
               Your kitchen
             </h2>
             <span className="small-tag">
-              {state.kitchenDirty
-                ? "Unsaved"
-                : state.profile.equipment.status === "unknown"
-                  ? "Unknown"
-                  : "Confirmed"}
+              {state.correctionUnresolved
+                ? "Needs confirmation"
+                : state.kitchenDirty
+                  ? "Unsaved"
+                  : state.profile.equipment.status === "unknown"
+                    ? "Unknown"
+                    : "Confirmed"}
             </span>
           </div>
           <KitchenPanel
