@@ -60,7 +60,7 @@ test('notice is mandatory on successes and typed failures', () => {
 
 test('source URLs reject scripts and embedded credentials', () => {
   assert.equal(c.SourceSchema.safeParse({ title: 'Recipe', url: 'https://example.com/recipe' }).success, true);
-  for (const url of ['javascript:alert(1)', 'file:///tmp/recipe', 'https://name:password@example.com']) {
+  for (const url of ['not a URL', '', 'http://[', 'javascript:alert(1)', 'file:///tmp/recipe', 'https://name:password@example.com']) {
     assert.equal(c.SourceSchema.safeParse({ title: 'Recipe', url }).success, false);
   }
 });

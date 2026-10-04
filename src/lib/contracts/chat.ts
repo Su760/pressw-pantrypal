@@ -70,8 +70,12 @@ export const ChatRequestSchema = z.strictObject({
 export const SourceSchema = z.strictObject({
   title: LabelSchema,
   url: z.url({ protocol: /^https?$/ }).max(limits.maxUrlCharacters).refine((value) => {
-    const url = new URL(value);
-    return !url.username && !url.password;
+    try {
+      const url = new URL(value);
+      return !url.username && !url.password;
+    } catch {
+      return false;
+    }
   }, "Source URLs must not contain credentials."),
 });
 

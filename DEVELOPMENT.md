@@ -173,3 +173,22 @@ Current official references inspected: [Next.js installation](https://nextjs.org
 **Milestones at foundation commit.** T0 complete (`3422a83`). T1 scaffold/contract/verification complete; its commit, non-force push, and worktree creation are the next sequential actions. T2–T7 remain pending except this round's narrow contract tests and Docker exclusions. No real model/search calls, chat UI, age/session behavior, browser interaction suite, Docker build/run, final TRADEOFFS, or end-to-end acceptance case A01–A20 has been validated.
 
 **Handoff ownership.** FRONTEND: `src/app/page.tsx`, `src/app/globals.css`, `src/components/**`, `src/lib/client/**`, `public/**`. REVIEWER: `tests/**` (contracts/backend/frontend) and `docs/REVIEW.md`; production files read-only, dependency changes proposed to LEAD. LEAD: `src/app/layout.tsx`, `src/app/api/**`, `src/lib/contracts/**`, `src/lib/server/**`, `config/**`, package/lock/config files, Docker files, root documentation, tasks/, and docs/CHAT_CONTRACT.md. Shared contract changes require coordination before implementation. Planned sibling branches: feat/frontend and review/quality. Ignored environment files and installed dependencies do not copy to new worktrees; run `npm ci` independently, and provision runtime credentials privately only when required.
+
+## 10. Foundation push, worktrees, and final parser correction
+
+Foundation commit `77a948395db3b70c78796a53f1dba91d949915e9` was pushed with `git push -u origin main` (exit 0, `[new branch] main -> main`). `git ls-remote origin refs/heads/main` confirmed that exact hash. GitHub CLI now reports public repository https://github.com/Su760/pressw-pantrypal with default branch main.
+
+Both requested paths/branches were absent when inspected, so `git worktree add` created them from the pushed foundation without deleting/resetting anything:
+
+| Session | Absolute path | Branch | Observed creation base |
+| --- | --- | --- | --- |
+| FRONTEND | /Users/supashramesha/Desktop/PressW/pantrypal-frontend | feat/frontend | 77a948395db3b70c78796a53f1dba91d949915e9 |
+| REVIEWER | /Users/supashramesha/Desktop/PressW/pantrypal-reviewer | review/quality | 77a948395db3b70c78796a53f1dba91d949915e9 |
+
+`git worktree list --porcelain` and per-worktree `git status --short --branch` confirmed the separate branches and clean files. Neither worktree contains node_modules or .env.local; dependencies and ignored credentials are not copied automatically. Run `npm ci` in each before its checks. No other session's branch was switched.
+
+**I06 — fixed final parser edge case.** Additional malformed-source verification after the first push showed `SourceSchema.safeParse({title: 'Invalid', url: 'not a URL'})` threw `TypeError ERR_INVALID_URL`. Root cause: the refinement at pre-fix `src/lib/contracts/chat.ts:73` called `new URL(value)` even after Zod's URL check failed. Added malformed/empty/broken-host strings to the existing URL regression; `npm run test:contracts` reproduced 5 passing and 1 failing with `error: 'Invalid URL', code: 'ERR_INVALID_URL'`. Guarded URL construction so malformed sources return validation failure instead of throwing. The subsequent test run passed 6/6; typecheck and key-free production build both exited 0 again. No model/backend implementation was added. This narrowly corrects T1; it does not add product scope.
+
+The commit containing this correction/log is the final shared foundation handoff. After committing it, LEAD will non-force push main and fast-forward each still-clean worktree using `git merge --ff-only`, preserving their branch names. These final operations are verified in the user-facing handoff rather than claimed before execution in this immutable commit. If either worktree changes meanwhile, preserve its work and report instead of forcing/resetting.
+
+T0 and T1 are complete subject to those final Git operations. Next authorized rounds: T2 backend, T3 frontend, and T4 focused reviewer tests against the shared contract, followed by integration, Docker, and final writeup. This round stops at the handoff. Missing UI rules and the unknown delivery-system deadline remain open; full application behavior and provider/Docker execution remain untested.
