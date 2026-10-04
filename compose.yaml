@@ -1,0 +1,10 @@
+services:
+  pantrypal:
+    build: .
+    image: pantrypal:local
+    ports:
+      - "127.0.0.1:${PANTRYPAL_PORT:-3000}:3000"
+    env_file:
+      - path: .env.local
+        required: false
+    init: true

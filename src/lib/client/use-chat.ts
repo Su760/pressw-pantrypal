@@ -418,10 +418,14 @@ export function useChat() {
           { message: data.message, response: data, revision: attempt.revision },
         ],
         proposal: data.inventoryProposal,
-        correctionUnresolved: data.inventoryProposal !== null,
+        correctionUnresolved:
+          current.current.correctionUnresolved ||
+          data.inventoryNeedsConfirmation || data.inventoryProposal !== null,
         status: data.inventoryProposal
           ? "Answer received. Review the proposed kitchen replacement."
-          : "Answer received.",
+          : data.inventoryNeedsConfirmation
+            ? "Answer received. Confirm your complete kitchen before continuing."
+            : "Answer received.",
       });
     } catch {
       if (!isCurrent(attempt)) return;

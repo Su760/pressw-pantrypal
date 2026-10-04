@@ -1,6 +1,6 @@
-# Shared chat contract — T1
+# Shared chat contract
 
-Authoritative schemas and inferred types: `src/lib/contracts/chat.ts`. Shared limits: `config/limits.json`. Both client and server must validate untrusted data with these schemas. This document specifies future behavior; no chat endpoint, model workflow, tool, or session UI is implemented at T1.
+Authoritative schemas and inferred types: `src/lib/contracts/chat.ts`. Shared limits: `config/limits.json`. Both client and server must validate untrusted data with these schemas. The integrated client and backend implement this JSON contract.
 
 ## Transport and history
 
@@ -8,7 +8,7 @@ Authoritative schemas and inferred types: `src/lib/contracts/chat.ts`. Shared li
 
 Request fields: `requestId` (fresh UUID per attempt), `sessionId` (random UUID per in-memory session), `sessionRevision` (nonnegative integer), `adultAcknowledged: true`, `profile`, and `messages`. Session IDs are correlation values, never authentication. Reject false/missing adult acknowledgement; the UI must obtain it explicitly. Disclosed minors must receive an age-boundary response and no cooking assistance even if acknowledgement was previously given.
 
-`messages` holds alternating `{id, role, content}` turns, beginning and ending with `user`; only `user`/`assistant` roles, unique UUIDs, text only. The newest user message is included exactly once at the end. Send successful prior assistant content only, not metadata, errors, sources, tool messages, or notices. On retry, reuse that pending user message with a fresh request ID; do not append duplicate user turns. Reject excessive history rather than silently forgetting context; offer Clear session when full. Prior client-supplied assistant text is untrusted context, not evidence a tool ran or ownership was confirmed. Backend builds system/tool messages itself.
+`messages` holds alternating `{id, role, content}` turns, beginning and ending with `user`; only `user`/`assistant` roles, unique UUIDs (compared case-insensitively while preserving original values), text only. The newest user message is included exactly once at the end. Send successful prior assistant content only, not metadata, errors, sources, tool messages, or notices. On retry, reuse that pending user message with a fresh request ID; do not append duplicate user turns. Reject excessive history rather than silently forgetting context; offer Clear session when full. Prior client-supplied assistant text is untrusted context, not evidence a tool ran or ownership was confirmed. Backend builds system/tool messages itself.
 
 ## Authoritative profile and inventory corrections
 
@@ -22,11 +22,13 @@ Confirmation covers the complete cookware AND heat-source snapshot. Ask about an
 
 Direct user edits replace the whole equipment snapshot and increment `sessionRevision`; explicit preferences/exclusion changes do the same. The backend never mutates session state. When user text corrects inventory, return nullable `inventoryProposal: {kind: "replace_equipment", basedOnMessageId, evidenceQuote, equipment}`. The message ID must identify a user turn in this request and the evidence quote must be an exact substring of that turn. These cross-request checks must be enforced by the backend, beyond structural schema validation. Ask if evidence is ambiguous or incomplete. Never infer owned items from recipe requirements.
 
+`inventoryNeedsConfirmation` returns the effective unresolved equipment-conflict flag even when no valid proposal can be made. It defaults to false when absent for compatibility with earlier responses. The client blocks further sends when this flag OR proposal presence is true; the block remains until explicit complete inventory confirmation/replacement or Clear session. Dismissing a proposal, editing a draft, or receiving another response does not clear it.
+
 A proposal is not applied automatically. Show the complete proposed replacement for user confirmation/editing; confirmation replaces, never merges, the prior equipment and increments revision. Reject/dismiss preserves the last confirmed profile, but conflicting user statements still require clarification before another feasibility claim. During a pending correction, do not claim feasibility using the contradicted inventory. A confirmation retry uses the updated snapshot and a new request ID. Proposal handling is for explicit equipment corrections; preferences/exclusions remain directly editable session fields.
 
 ## Final response
 
-Success echoes the exact request/session/revision and returns `message: {id, role: "assistant", content}`, deterministic `allergenNotice`, `sources`, `equipmentChecks`, nullable `inventoryProposal`, and `metrics`.
+Success echoes the exact request/session/revision and returns `message: {id, role: "assistant", content}`, deterministic `allergenNotice`, `sources`, `equipmentChecks`, nullable `inventoryProposal`, boolean `inventoryNeedsConfirmation`, and `metrics`.
 
 Render assistant text as text (no raw HTML). Always visibly render the imported notice with every assistant response, including refusals and ingredient-only suggestions; it must not depend on model text. Display errors separately from conversation history, with the notice supplied by the contract. The literal notice is enforced by schema.
 
@@ -59,7 +61,7 @@ Use `AbortController` per request. Capture `(sessionId, sessionRevision, request
 
 Cancel invalidates the active request ID before aborting. Editing profile state cancels/invalidate-first and increments revision. Clear session invalidates first, aborts in-flight work, replaces `sessionId` with a new UUID, resets revision, and clears messages/drafts/errors/sources/checks/proposals/metrics/loading, equipment to unknown, preferences/exclusions to empty, and adult acknowledgement to false. No localStorage/sessionStorage, database, cookies, or transcript logging. Refresh/reopen begins a new session. No server delete endpoint is needed because the app retains no durable session.
 
-The backend must propagate cancellation to the AI SDK and tool fetches and enforce a timeout independently. Upstream cancellation is best effort and can still incur cost. Clear session neither retracts completed provider requests nor guarantees provider deletion. These lifecycle rules are obligations for T2/T3, not implemented behavior in T1.
+The backend must propagate cancellation to the AI SDK and tool fetches and enforce a timeout independently. Upstream cancellation is best effort and can still incur cost. Clear session neither retracts completed provider requests nor guarantees provider deletion. The client applies these lifecycle guards; cancellation remains best effort upstream.
 
 ## Ownership after this round
 

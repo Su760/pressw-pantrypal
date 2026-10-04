@@ -13,5 +13,14 @@
   "maxSearchCalls": 2,
   "maxSearchResults": 5,
   "requestTimeoutMs": 30000,
-  "searchTimeoutMs": 8000
+  "searchTimeoutMs": 8000,
+  "maxToolCalls": 8,
+  "maxSearchQueryCharacters": 300,
+  "maxSearchResponseBytes": 131072,
+  "maxSearchSnippetCharacters": 1200,
+  "maxRecipeIngredients": 20,
+  "maxRecipeSteps": 12,
+  "maxRecipeStepCharacters": 400,
+  "maxDisplayedRecipes": 2,
+  "maxConcurrentRequests": 4
 }

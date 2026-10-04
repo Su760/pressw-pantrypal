@@ -27,3 +27,9 @@ test-results
 **/.npmrc
 .vercel
 .worktrees
+tests
+tasks
+docs
+brief
+*.md
+assessment.json
