@@ -39,3 +39,15 @@ Authorization: the user's explicit integration/fix request approves this plan, n
 - [x] Update README, TRADEOFFS, DEVELOPMENT with actual results. Commit/push is the final handoff operation; report its observed outcome without claiming it in advance.
 
 Edit boundary for this round: src/lib/contracts/chat.ts; src/lib/server/{policy,chat}.ts; src/lib/client/use-chat.ts; tests/contracts/chat.test.cjs (R1 TODO only); docs/CHAT_CONTRACT.md; README.md; TRADEOFFS.md; DEVELOPMENT.md; tasks/{todo,lessons}.md. Temporary ignored dist/ checks may be written. Other merged frontend files remain untouched.
+
+# Round four — bounded recipe-reference recovery
+
+User authorizes the pinned merges, narrow backend recovery, regressions, verification and main commit/push. Preserve both existing stashes, all round-three contract/client fixes, and concurrent ownership boundaries.
+
+- [x] Verify original directory, clean main at 9881003, remote/stashes; fetch and normally merge FRONTEND 9a6eafb and REVIEWER e4f5db6 only.
+- [x] Add deterministic conflict-first/invalid-reference fallback, then at most one recovery sharing execution, steps, usage, signal and original deadline.
+- [x] Add durable response/recovery regressions and test:backend; run backend/contracts/typecheck/build, report reviewer-owned known failures unchanged.
+- [ ] Docker rebuild on 3102 blocked by BuildKit read-only filesystem; no new container verification claimed. Equivalent real-provider sequence passed on current local production build at 3103, including an actual recovery. Engine restart awaits approval because it affects unrelated containers.
+- [x] Update integration docs with actual evidence and limitations. Commit/push is the final operation; report its observed outcome in the handoff without polling other sessions.
+
+Edit boundary: src/lib/server/chat.ts (optional narrow response helper only if necessary); SYSTEM_POLICY recipe-reference/recovery wording in src/lib/server/policy.ts only; tests/backend/chat.test.cjs; package.json scripts; tests/backend/run.sh only if runner compilation needs the new helper; README.md, DEVELOPMENT.md, TRADEOFFS.md; tasks/todo.md and tasks/lessons.md. validProposal and reviewer policy tests/review notes are read-only. All presentation files and existing shared contract/client code are read-only.

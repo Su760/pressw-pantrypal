@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
-    "test:contracts": "tsc src/lib/contracts/chat.ts --outDir dist/contract-tests --module commonjs --target ES2022 --esModuleInterop --resolveJsonModule --skipLibCheck --strict && node --test tests/contracts/chat.test.cjs"
+    "test:contracts": "tsc src/lib/contracts/chat.ts --outDir dist/contract-tests --module commonjs --target ES2022 --esModuleInterop --resolveJsonModule --skipLibCheck --strict && node --test tests/contracts/chat.test.cjs",
+    "test:backend": "sh tests/backend/run.sh"
   },
   "dependencies": {
     "@ai-sdk/openai": "4.0.83",

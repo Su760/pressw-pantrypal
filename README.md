@@ -20,6 +20,7 @@ Privately replace the key placeholders in `.env.local` and set `OPENAI_MODEL=gpt
 ```sh
 npm run typecheck
 npm run test:contracts
+npm run test:backend
 npm run build
 npm start
 ```
@@ -38,7 +39,7 @@ docker compose logs --tail=30 pantrypal
 docker compose down
 ```
 
-Compose publishes on localhost only. If port 3000 is in use, prefix Compose commands with `PANTRYPAL_PORT=3102` and use http://localhost:3102. Use `docker compose up --build -d` after code changes. The root page serves the integrated chat. The verified integration container is at http://localhost:3102; port 3001 is reserved for the separate frontend preview.
+Compose publishes on localhost only. If port 3000 is in use, prefix Compose commands with `PANTRYPAL_PORT=3102` and use http://localhost:3102. Use `docker compose up --build -d` after code changes. The root page serves the integrated chat. The previous integration container used http://localhost:3102; the latest rebuild is currently blocked by a Docker BuildKit read-only-filesystem error. The current production build was verified locally at http://localhost:3103. Port 3001 is reserved for the separate frontend preview.
 
 The image builds without credentials and runs as the non-root `node` user using Next.js standalone output. `.env*`, keys, logs, databases, local dependencies/build artifacts, and assessment/development documents are excluded from the build context. Compose reads `.env.local` only at container startup; it is optional so the container can start without provider access. Missing OpenAI configuration produces a typed 503 for model requests. No provider secrets are Dockerfile ARG/ENV values or image layers. The healthcheck tests HTTP responsiveness, not provider availability. Avoid printing resolved Compose configuration or container environment values.
 
@@ -71,10 +72,16 @@ For a tool demonstration, confirm complete cookware and heat-source lists in `pr
 
 Current-session preferences and named ingredient exclusions are supported without medical tailoring, nutritional suitability or consumption-safety claims. This is an adults-only prototype, not verified age assurance. Every assistant response includes the notice. No application conversation database, browser persistence or transcript logging is implemented by the backend. The client implements Clear session and suppresses stale responses using session/revision/request guards. Cancellation is best effort upstream; completed provider processing cannot be retracted. OpenAI response storage is disabled with `store: false`; this is not a zero-retention guarantee.
 
-`config/limits.json` sets a 64 KiB request cap, 30-second overall deadline, four model steps, 2,000 output tokens per step, eight total tool executions, two searches, five results/search, bounded search bodies/snippets, and four concurrent requests per process. Reservations occur before async tool work. No automatic provider retries. These are per-request/process limits, not distributed rate limiting or an account-wide spending cap. Token usage is measured; no dollar cost or two-second answer guarantee is claimed.
+`config/limits.json` sets a 64 KiB request cap, 30-second overall deadline, four model steps, 2,000 output tokens per step, eight total tool executions, two searches, five results/search, bounded search bodies/snippets, and four concurrent requests per process. Reservations occur before async tool work. No automatic provider transport retries. An invalid recipe reference permits at most one model recovery within the same four-step/request/tool budgets; failed or exhausted recovery returns a deterministic clarification without a recipe or feasibility claim. These are per-request/process limits, not distributed rate limiting or an account-wide spending cap. Token usage is measured; no dollar cost or two-second answer guarantee is claimed.
 
 Equipment is never inferred from recipe requirements. Only confirmed inventory is compared, with a small explicit alias map. Unknown/contradicted inventory and detected incomplete method requirements remain unverified. The model still interprets natural language and proposes requirements, so semantic omissions, unusual synonyms, prompt injection, and content-boundary errors remain risks. Proposals need an actual latest user-message ID, exact evidence substring, affirmative literal item evidence, and visible user confirmation; ambiguous evidence yields clarification instead of an update.
 
 ## Parallel work
 
-FRONTEND owns its assigned UI/client files on feat/frontend; REVIEWER owns tests/** and docs/REVIEW.md on review/quality. LEAD owns API/server/shared/configuration files and integration. Installed dependencies and ignored environment files are not copied between worktrees. Run `npm ci` independently and provision credentials privately only when needed. This checkpoint integrates only reviewed frontend 1c71172 and reviewer a53fe79. Later presentation polish and backend-test commits remain separate and unmerged; see the latest log for actual verification.
+FRONTEND owns its assigned UI/client files on feat/frontend; REVIEWER owns tests/** and docs/REVIEW.md on review/quality. LEAD owns API/server/shared/configuration files and integration. Installed dependencies and ignored environment files are not copied between worktrees. Run `npm ci` independently and provision credentials privately only when needed. This checkpoint integrates reviewed frontend 9a6eafb and reviewer e4f5db6. The separate ownership-excerpt policy fix and kitchen-status badge follow-up remain unmerged. No later branch tips are included; see DEVELOPMENT.md for verification.
+
+## Current verification status
+
+`test:contracts` passes 13/13. `test:backend` runs the reviewer runner plus response/recovery regressions with network disabled: 50/52 pass, including all 11 new recovery tests. The two red ownership-excerpt tests remain assigned to REVIEWER; their assertions have not been weakened. Typecheck and production build pass.
+
+Live production-build checks verified an online recipe, a changed method with a fresh equipment check, and a general follow-up that used the bounded recovery successfully. Docker rebuild failed due to host disk pressure and a read-only BuildKit filesystem; the latest code has not yet been validated in a rebuilt container. Detailed timings, execution evidence, and pending integration work are in DEVELOPMENT.md and TRADEOFFS.md.
