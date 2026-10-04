@@ -51,3 +51,17 @@ User authorizes the pinned merges, narrow backend recovery, regressions, verific
 - [x] Update integration docs with actual evidence and limitations. Commit/push is the final operation; report its observed outcome in the handoff without polling other sessions.
 
 Edit boundary: src/lib/server/chat.ts (optional narrow response helper only if necessary); SYSTEM_POLICY recipe-reference/recovery wording in src/lib/server/policy.ts only; tests/backend/chat.test.cjs; package.json scripts; tests/backend/run.sh only if runner compilation needs the new helper; README.md, DEVELOPMENT.md, TRADEOFFS.md; tasks/todo.md and tasks/lessons.md. validProposal and reviewer policy tests/review notes are read-only. All presentation files and existing shared contract/client code are read-only.
+
+# Final integration baseline
+
+Authorization: the user's final integration instructions approve this exact plan, pinned merges, verification, documentation, commit and non-force push on main. Original assessment worktree verified clean at 4a2721a; all four stashes preserved. Aim for handoff within eight minutes; hard stop October 3, 23:34:09 CDT.
+
+- [x] Fetch and normally merge REVIEWER 7b9bfa3e887354d568f22e5a9078886ea4a399c0 and FRONTEND 58db1769ccc5876e3215b2ebfba7cca032b03edd only.
+- [x] Run backend/contracts/typecheck/build; check Docker once and attempt current build/start on 3102 if healthy. Use current local production fallback if blocked.
+- [x] Verify real search/checked recipe and follow-up, browser null-proposal correction and Clear session; label mock evidence explicitly.
+- [x] Update README, TRADEOFFS and DEVELOPMENT; verify deliverables/artifact integrity and safe staging.
+- Final operation: commit and non-force push the verified baseline, then report the observed hash/remote equality in the handoff and stop.
+
+Edit boundary: README.md, TRADEOFFS.md, DEVELOPMENT.md, tasks/todo.md, tasks/lessons.md. Reviewed code/tests/docs enter only through the specified merges. Temporary verification evidence stays ignored under dist/. No edits to separately owned presentation files or docs/DEMO.md; no dependency copies, credential changes, Docker repair or cache/image/volume deletion.
+
+Final plan update authorized by user: add exact REVIEWER demo commit 59b288a05034d1fe0dfb7a1faf40943f90a7e00e and finalize docs/DEMO.md recovery/retry wording, historical 502, verified Docker URL, and stale line references. This adds docs/DEMO.md to the edit boundary. Do not wait for frontend styling.

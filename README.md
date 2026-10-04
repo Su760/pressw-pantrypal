@@ -12,7 +12,7 @@ Use Node.js 22+ and npm (`.nvmrc` records the verified local version).
 
 ```sh
 npm ci
-cp .env.example .env.local
+test -f .env.local || cp .env.example .env.local
 ```
 
 Privately replace the key placeholders in `.env.local` and set `OPENAI_MODEL=gpt-4.1-mini`. Next.js loads the file normally. If OPENAI_MODEL is absent, `config/server.json` defaults to gpt-4.1-mini. An unchanged placeholder is rejected. Never print/commit keys or use `NEXT_PUBLIC_` variables for provider settings. OpenAI credentials are required for model requests; an unavailable Tavily key yields an honest search-unavailable result when the model selects search.
@@ -39,7 +39,7 @@ docker compose logs --tail=30 pantrypal
 docker compose down
 ```
 
-Compose publishes on localhost only. If port 3000 is in use, prefix Compose commands with `PANTRYPAL_PORT=3102` and use http://localhost:3102. Use `docker compose up --build -d` after code changes. The root page serves the integrated chat. The previous integration container used http://localhost:3102; the latest rebuild is currently blocked by a Docker BuildKit read-only-filesystem error. The current production build was verified locally at http://localhost:3103. Port 3001 is reserved for the separate frontend preview.
+Compose publishes on localhost only. If port 3000 is in use, prefix Compose commands with `PANTRYPAL_PORT=3102` and use http://localhost:3102. Use `docker compose up --build -d` after code changes. The root page serves the integrated chat. The current integrated production image was rebuilt and started healthy at **http://localhost:3102** after the user restarted the Mac. Fresh live provider checks passed there. The previous round had a BuildKit read-only-filesystem failure and used a local production fallback on 3103; that server stopped during reboot and is not the current demo. Port 3001 is reserved for the separate frontend preview.
 
 The image builds without credentials and runs as the non-root `node` user using Next.js standalone output. `.env*`, keys, logs, databases, local dependencies/build artifacts, and assessment/development documents are excluded from the build context. Compose reads `.env.local` only at container startup; it is optional so the container can start without provider access. Missing OpenAI configuration produces a typed 503 for model requests. No provider secrets are Dockerfile ARG/ENV values or image layers. The healthcheck tests HTTP responsiveness, not provider availability. Avoid printing resolved Compose configuration or container environment values.
 
@@ -78,10 +78,14 @@ Equipment is never inferred from recipe requirements. Only confirmed inventory i
 
 ## Parallel work
 
-FRONTEND owns its assigned UI/client files on feat/frontend; REVIEWER owns tests/** and docs/REVIEW.md on review/quality. LEAD owns API/server/shared/configuration files and integration. Installed dependencies and ignored environment files are not copied between worktrees. Run `npm ci` independently and provision credentials privately only when needed. This checkpoint integrates reviewed frontend 9a6eafb and reviewer e4f5db6. The separate ownership-excerpt policy fix and kitchen-status badge follow-up remain unmerged. No later branch tips are included; see DEVELOPMENT.md for verification.
+FRONTEND owns its assigned UI/client files on feat/frontend; REVIEWER owns tests/** and docs/REVIEW.md on review/quality. LEAD owns API/server/shared/configuration files and integration. Installed dependencies and ignored environment files are not copied between worktrees. Reuse existing installations during integration; use `npm ci` for a fresh clone and provision credentials privately. This checkpoint includes the earlier milestones plus reviewed ownership-context fix 7b9bfa3 and kitchen-confirmation labels 58db176. The reviewed demo guide 59b288a is integrated and updated against final verification; the separate final presentation pass remains pending. No later branch tips are included; see DEVELOPMENT.md for verification.
 
 ## Current verification status
 
-`test:contracts` passes 13/13. `test:backend` runs the reviewer runner plus response/recovery regressions with network disabled: 50/52 pass, including all 11 new recovery tests. The two red ownership-excerpt tests remain assigned to REVIEWER; their assertions have not been weakened. Typecheck and production build pass.
+Final baseline: `test:backend` **56/56**, `test:contracts` **13/13**, zero failures/skips/TODOs. Typecheck and production build pass. The pinned reviewer fix validates evidence in its surrounding sentence and rejects ambiguous repeated excerpts; the frontend now labels unresolved kitchen corrections “Needs confirmation.” Bounded recipe recovery, proposal confirmation, and session lifecycle guards are preserved.
 
-Live production-build checks verified an online recipe, a changed method with a fresh equipment check, and a general follow-up that used the bounded recovery successfully. Docker rebuild failed due to host disk pressure and a read-only BuildKit filesystem; the latest code has not yet been validated in a rebuilt container. Detailed timings, execution evidence, and pending integration work are in DEVELOPMENT.md and TRADEOFFS.md.
+Current Docker build/start passed; the container is healthy at **http://localhost:3102** (local machine only). A real search/checked recipe took 8,342 ms with five source links and two feasible checks. Its modified method received a fresh check in 4,044 ms; a general follow-up answered in 1,441 ms. These are individual observations, not latency guarantees. Backend recovery edge cases use mocked generation with networking disabled; live execution evidence is recorded separately in DEVELOPMENT.md.
+
+Fresh browser checks also verified a live null-proposal correction: the kitchen shows “Needs confirmation” and Send stays blocked until complete kitchen confirmation. Clear session resets all fields, answers, equipment and acknowledgement.
+
+Remaining submission work: integrate the separately supplied final presentation commit, rerun checks appropriate to those changes, and submit the repository URL before October 3, 11:34:09 PM CDT. No public hosted demo is claimed.
