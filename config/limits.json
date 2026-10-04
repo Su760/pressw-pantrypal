@@ -1,0 +1,17 @@
+{
+  "maxRequestBytes": 65536,
+  "maxMessages": 24,
+  "maxMessageCharacters": 6000,
+  "maxReplyCharacters": 12000,
+  "maxProfileItems": 32,
+  "maxLabelCharacters": 160,
+  "maxSources": 8,
+  "maxUrlCharacters": 2048,
+  "maxEquipmentChecks": 8,
+  "maxModelSteps": 4,
+  "maxOutputTokens": 2000,
+  "maxSearchCalls": 2,
+  "maxSearchResults": 5,
+  "requestTimeoutMs": 30000,
+  "searchTimeoutMs": 8000
+}
