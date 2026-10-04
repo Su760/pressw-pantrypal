@@ -235,3 +235,25 @@ Final production-server live smoke after the grounding changes:
 Existing `npm run test:contracts`: 6/6 pass. Final `npm run typecheck` and `npm run build`: exit 0; /api/chat is a dynamic Node route. Temporary focused backend assertions pass, including concurrency rejection (429) and cancellation releasing admitted slots. .env.local was loaded normally; boolean checks confirmed both provider keys present and model exactly gpt-4.1-mini without printing values. Several earlier failures/retries are preserved above. This checkpoint is verified API behavior, not a claim that integrated frontend/session controls or all A01–A20 cases are complete.
 
 Remaining T2 limitations: semantic safety, exclusion synonyms and complete recipe-requirement extraction still involve model judgment; conservative vocabulary checks can over-flag unknown equipment. No distributed rate limit/global dollar cap or verified age assurance. Aborts are best effort upstream. The request-wide caps bound work but do not guarantee maximum provider spend under arbitrary traffic. Structured invalid outputs/references fail closed. Persistent regression ownership remains REVIEWER; temporary checks are in ignored dist/backend-check for this local handoff. T3/frontend and T4/reviewer branches remain unmerged. Docker is the next step after committing and pushing this checkpoint.
+
+## 13. API push and Docker checkpoint
+
+API checkpoint `a68701cf505fab6d8498a2dd07864129804317fd` committed and pushed to main at approximately 9:55 PM CDT, about 28 minutes after round-two start. `git ls-remote origin refs/heads/main` confirmed that exact hash before Docker work began. No force push, branch merge, worktree reset or global-hook modification.
+
+Added a three-stage Node 22 Alpine Dockerfile with npm ci, credential-free build, Next.js standalone output and non-root node runtime. Compose injects optional .env.local at startup only, publishes localhost with configurable PANTRYPAL_PORT, and uses init plus an HTTP healthcheck. .dockerignore additionally excludes assessment/development docs and test/task artifacts. next.config.ts sets output: standalone. README now contains working setup, API, Docker/Compose, limit, privacy and parallel-work instructions. Current docs checked: [Next standalone output](https://nextjs.org/docs/app/api-reference/config/next-config-js/output), [Compose environment files](https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/). No package/dependency changes.
+
+| Docker/check command | Observed result |
+| --- | --- |
+| `PANTRYPAL_PORT=3102 docker compose config --quiet` | Exit 0; configuration valid without printing resolved credential values |
+| `PANTRYPAL_PORT=3102 docker compose build` | Exit 0; npm ci installed platform dependencies and production build succeeded with no provider credentials/env files in build context; image pantrypal:local created |
+| `npm run typecheck` after standalone config | Exit 0 |
+| Image-only Node assertions via `docker run --rm --entrypoint node pantrypal:local` | UID 1000; .env.local/.env.example absent; OPENAI_API_KEY and TAVILY_API_KEY absent from image environment; no values displayed |
+| `PANTRYPAL_PORT=3102 docker compose up -d --wait --wait-timeout 30` | Exit 0, service healthy; final binding 127.0.0.1:3102 -> container 3000 |
+| Container HTTP checks | GET / returned 200. POST /api/chat returned valid 200 with real model generation; request 634dbfb1-84e9-4f78-94fa-e44d0f6bd41c, duration 1,396 ms, 1,173 input/87 output tokens, no tools |
+| Isolated image started without credentials | Valid model request returned typed CONFIGURATION_ERROR/503 with original correlation ID; no provider request attempted |
+| `docker compose logs --tail=8 pantrypal` | Actual model step/request metadata present; no transcript/key output |
+| `PANTRYPAL_PORT=3102 docker compose down` | Exit 0; verification container and its network stopped/removed. Temporary local Node verification server also stopped |
+
+T2/API checkpoint is implemented and exercised; T6/Docker backend build/start is verified. Full frontend integration, browser Clear-session/stale-response behavior, reviewer test integration and final TRADEOFFS/submission remain pending. This round does not merge FRONTEND or REVIEWER branches. Shared request/response schemas and contract document remain byte-for-byte unchanged from 3ae1af9. Original assessment artifacts and frontend/reviewer-owned files also remain unchanged on main. Application-level semantic safety, complete inferred recipe requirements and provider retention limitations remain as documented; successful smoke cases are not comprehensive guarantees.
+
+Confirmed timing remains 11:15 PM target submission and 11:34:09 PM hard deadline on October 3, 2026. Docker checkpoint will be committed/pushed after this entry; the final response reports the observed resulting hash and remote verification. Stop at that handoff.

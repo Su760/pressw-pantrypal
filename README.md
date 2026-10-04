@@ -26,6 +26,22 @@ npm start
 
 Open http://localhost:3000. Use `npm run dev` for development. Builds do not call providers or require live credentials. A chat frontend is not yet integrated on main; exercise the API directly.
 
+## Docker / Compose
+
+Docker Engine/Desktop with Compose 2.24+ is required. Keep `.env.local` in the project directory with runtime values as described above.
+
+```sh
+docker compose build
+docker compose up -d
+curl --fail http://localhost:3000/
+docker compose logs --tail=30 pantrypal
+docker compose down
+```
+
+Compose publishes on localhost only. If port 3000 is in use, prefix Compose commands with `PANTRYPAL_PORT=3102` and use http://localhost:3102. Use `docker compose up --build -d` after code changes. The root page is still the foundation shell; use the API example below to exercise the backend.
+
+The image builds without credentials and runs as the non-root `node` user using Next.js standalone output. `.env*`, keys, logs, databases, local dependencies/build artifacts, and assessment/development documents are excluded from the build context. Compose reads `.env.local` only at container startup; it is optional so the container can start without provider access. Missing OpenAI configuration produces a typed 503 for model requests. No provider secrets are Dockerfile ARG/ENV values or image layers. The healthcheck tests HTTP responsiveness, not provider availability. Avoid printing resolved Compose configuration or container environment values.
+
 ## API example
 
 ```sh
@@ -55,4 +71,4 @@ Equipment is never inferred from recipe requirements. Only confirmed inventory i
 
 ## Parallel work
 
-FRONTEND owns its assigned UI/client files on feat/frontend; REVIEWER owns tests/** and docs/REVIEW.md on review/quality. LEAD owns API/server/shared/configuration files and integration. Installed dependencies and ignored environment files are not copied between worktrees. Run `npm ci` independently and provision credentials privately only when needed. Docker verification and final TRADEOFFS are separate milestones; see the latest log for actual results.
+FRONTEND owns its assigned UI/client files on feat/frontend; REVIEWER owns tests/** and docs/REVIEW.md on review/quality. LEAD owns API/server/shared/configuration files and integration. Installed dependencies and ignored environment files are not copied between worktrees. Run `npm ci` independently and provision credentials privately only when needed. Final frontend integration and TRADEOFFS remain separate milestones; see the latest log for actual Docker results.
