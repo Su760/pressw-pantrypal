@@ -65,3 +65,12 @@ Authorization: the user's final integration instructions approve this exact plan
 Edit boundary: README.md, TRADEOFFS.md, DEVELOPMENT.md, tasks/todo.md, tasks/lessons.md. Reviewed code/tests/docs enter only through the specified merges. Temporary verification evidence stays ignored under dist/. No edits to separately owned presentation files or docs/DEMO.md; no dependency copies, credential changes, Docker repair or cache/image/volume deletion.
 
 Final plan update authorized by user: add exact REVIEWER demo commit 59b288a05034d1fe0dfb7a1faf40943f90a7e00e and finalize docs/DEMO.md recovery/retry wording, historical 502, verified Docker URL, and stale line references. This adds docs/DEMO.md to the edit boundary. Do not wait for frontend styling.
+
+# Final CSS styling integration
+
+User authorizes exact FRONTEND d65275914696ae5d1c3e387f4aed0caabc5d1c6d integration from verified main e361e66, Docker rebuild/start on 3102, focused desktop/375px checks, documentation and non-force commit/push by approximately 23:30 CDT (hard deadline 23:34:09). Scope: pinned merge of src/app/globals.css; DEVELOPMENT.md and task logs only. Preserve behavior and unrelated work; no backend/provider-suite rerun.
+
+- [x] Verify clean main at e361e66, four stashes, independent HTTP 200 and healthy Docker before integration; inspect exact CSS-only diff.
+- [x] Merge pinned styling commit and rebuild/start final Docker image on 3102.
+- [x] Check desktop/375px readable notices, kitchen confirmation/composer reachability, overflow and Clear session; update DEVELOPMENT.md.
+- Final operation: verify safe staged docs, commit and non-force push; report actual remote equality and stop.
