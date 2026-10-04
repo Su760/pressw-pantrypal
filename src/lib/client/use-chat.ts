@@ -396,7 +396,9 @@ export function useChat() {
       }
       if (
         response.status !== 200 ||
-        turns.some((turn) => turn.message.id === data.message.id)
+        turns.some(
+          (turn) => turn.message.id.toLowerCase() === data.message.id.toLowerCase(),
+        )
       )
         throw new Error("Invalid success");
       if (data.inventoryProposal) {
