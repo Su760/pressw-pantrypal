@@ -115,3 +115,92 @@ These are unexecuted test scripts with explicit expected results. Record the imp
 | B10 Docker startup / Lead + Reviewer                    | Once Docker files/README exist, follow the documented fresh setup. Run `docker compose build --no-cache` and `docker compose up -d`; open the documented URL and perform B01 plus a second turn. Stop with `docker compose down`. Repeat startup without runtime keys. Inspect image/build context/client bundle/logs for secret or transcript leakage. | Fresh build/start works with runtime-only credentials; chat/tools work inside the container. Missing keys produce documented controlled guidance. No secret baked into image/client bundle or user transcript persisted/logged.                                                                                                                                         |
 
 Handoff ends here. Lead owns fixes/shared-contract decisions and integration; pending features must be reviewed at their actual implementation commits.
+
+## Backend regression round — pinned checkpoint a65db8
+
+This entry supplements the foundation review above. Exact production target: `a65db8059fe77db47959060e74c480cb4586ce11`. Starting reviewer commit: `a53fe79ac9b3ecae54166eab5a3128519fdaf3b3`. Merge commit: `f327dd186666c2a8ce396e9a1a7d913af0c92b12`; production/configuration/dependency/Docker files match the pinned checkpoint. No later Lead fixes are assumed present.
+
+The user explicitly authorizes the merge, durable tests, commit, and non-force push. This round adds only `tests/backend/run.sh`, `tests/backend/no-network.cjs`, `tests/backend/fixtures.cjs`, `tests/backend/policy.test.cjs`, `tests/backend/tools.test.cjs`, `tests/backend/http.test.cjs`, and appended review entries. Contract tests and production/package files remain unchanged by the reviewer. Task notes were read and left outside this round's edit boundary.
+
+- [x] Inspect/preserve known formatting changes; fetch origin and merge the exact checkpoint.
+- [x] Read backend/route/config/Docker implementation and Lead's temporary `dist/backend-check/check.cjs` (read-only).
+- [x] Add active policy, proposal/equipment, mocked-tool, bounded-body and cancellation regressions; compile/run using existing TypeScript and native Node.
+- [x] Record actual failures, integration/browser acceptance, command and package-script proposal. Final handoff records the resulting commit/push.
+
+Preserved named **tracked-files-only** stash: `review-quality-formatting-before-a65db8-20261003`, object `f958558f0d53e90cf29df27799d312fbca68ded7`. Its eight changed paths match the known formatting changes listed above; the stash has two parents and no untracked-files parent. No `-u`/`-a`, ignored environment files, credentials, other-worktree edits, restore/drop/pop, or discarded changes. It must remain preserved at handoff.
+
+Correction carried forward: new backend regressions stay active even when the pinned checkpoint fails; no TODO/skip markers or green-suite claim. The earlier contract R1 test is intentionally untouched for Lead's fix/removal.
+
+### Reproducible backend command and observed results
+
+From the reviewer repository (Node 22, existing `npm ci` dependencies):
+
+```sh
+sh tests/backend/run.sh
+```
+
+The script compiles `src/app/api/chat/route.ts` and its imports with the installed `tsc` into ignored `dist/backend-tests`, then runs only `tests/backend/*.test.cjs` through native Node with a five-second test timeout. It unsets provider/model environment variables for the test process, never loads `.env*`, and preloads a fetch guard; search tests replace that guard with per-test native mocks. Test mocks restore automatically. No real model/search request, provider credentials, new dependency, package-script change, or alternate framework is involved. Compilation is required each run, so stale emitted JavaScript is not the test target.
+
+Suggested addition **for Lead only**: `"test:backend": "sh tests/backend/run.sh"` in package.json. No package file was edited here.
+
+| Check                 | Result against a65db8059fe77db47959060e74c480cb4586ce11                                                                                                                                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Backend compile/run   | Compilation succeeds; native Node exits **1**: **41 tests, 35 passed, 6 failed, 0 skipped, 0 TODO**.                                                                                                                                                                                                   |
+| `npm run typecheck`   | Exit 0. This does not negate the six behavioral failures.                                                                                                                                                                                                                                              |
+| HTTP/body group       | 9 passed: UTF-8 exact byte boundary/chunks, overflow cancellation/reader release, malformed JSON/UTF-8, stalled-reader abort, nonsettling work cancellation, absent/false Content-Length, typed/no-store errors and correlation, admission recovery, request deadline before generation.               |
+| Policy/proposal group | 18 executed: 12 passed, 6 failed (detailed below). Explicit minor forms and real equipment corrections pass; prior minor context remains effective.                                                                                                                                                    |
+| Equipment/tool group  | 14 passed: unknown/empty/missing/feasible, detected omitted method requirements, parallel search and combined execution caps, request isolation, actual mocked-source collection/filtering/snippet limits, HTTP/parse/network/size/empty search outcomes, cancellation, explicit ingredient exclusion. |
+
+The first run emitted Node 22's `ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time`; the mocked timer advances the route's configured deadline without a real 30-second wait. These tests do not measure wall-clock provider latency or prove real model-selected orchestration. Policy failures are expected on this pinned older checkpoint, remain normal failing assertions, and must be rerun after Lead's fixes. No attempt was made to weaken assertions or fix production code.
+
+Failure excerpts:
+
+```text
+not ok - age boundary: I'm 10 minutes from home
++ actual: "PantryPal is an adults-only prototype. I can't provide cooking assistance to someone under 18. Please ask a trusted adult for help."
+- expected: null
+
+not ok - inventory correction: I only have eggs and rice
+not ok - inventory correction: I don't have garlic
+not ok - inventory correction: Actually, make it spicy.
+true !== false
+
+not ok - proposal cannot cherry-pick affirmative evidence from: It is not true that I have a pan and a hot plate.
+not ok - proposal cannot cherry-pick affirmative evidence from: If I have a pan and a hot plate, I could try that recipe.
+true !== false
+
+# tests 41
+# pass 35
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+```
+
+### Confirmed findings on the pinned backend
+
+Source line references in this subsection refer to **a65db8**, not any subsequent Lead fixes or uncommitted formatting. No high/critical defect confirmed in these deterministic tests.
+
+| Finding                                              | Location, reproduction and cause                                                                                                                                                                                                                                                                                                                                                                                   | Impact and suggested fix                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **B-R1 — Medium, known policy defect**               | `src/lib/server/policy.ts:14`: the optional age suffix lets `I'm 10 minutes from home` match age 10; `boundaryReply` returns MINOR_NOTICE instead of null. `tests/backend/policy.test.cjs` keeps this active alongside passing `I'm 12` and `I'm 12 years old` cases.                                                                                                                                              | `src/lib/server/chat.ts:81` returns the shortcut before generation; a non-age statement blocks cooking help and can affect later turns. Require a standalone/explicit age disclosure while excluding measured-time/count contexts. Lead owns the known fix.                                                                                                                                                     |
+| **B-R2 — Medium, known policy defect**               | `src/lib/server/policy.ts:44`: `actually`, `only have`, and `don't have` are matched without an equipment referent. Each of the three ingredient/preference prompts above returns true.                                                                                                                                                                                                                            | `src/lib/server/tools.ts:52` suppresses feasibility and `src/lib/server/chat.ts:135` requests kitchen confirmation for unrelated food/preferences. Ground the correction in equipment ownership/capability while retaining microwave/broken-pan detection. Lead owns the known fix.                                                                                                                             |
+| **B-R3 — Medium, newly confirmed provenance defect** | `src/lib/server/policy.ts:59` checks substring membership, then `:62`–`:89` inspect only that substring. For either negated/conditional user sentence above, set `evidenceQuote` to `I have a pan and a hot plate`, use that latest user ID, and propose pan/hot plate. `validProposal` returns true; expected false. Quoting the full negative/conditional evidence is correctly rejected by other passing cases. | A model can omit surrounding negation/condition and produce an apparently grounded ownership proposal. UI confirmation is still required; no automatic state mutation or real model exploit was claimed. Validate the surrounding source clause/context before accepting an affirmative fragment, or ask for complete explicit ownership confirmation when context is ambiguous. Keep these regressions active. |
+
+### Preservation and integration notes
+
+Formatting changes reappeared during test authoring in the eight original paths plus `src/lib/server/chat.ts`, `src/lib/server/policy.ts`, and `src/lib/server/tools.ts`; inspected diffs show formatting changes. Preserve these in a second named tracked-files-only stash, `review-quality-formatting-during-backend-20261003`, without applying or dropping the original stash. Neither set belongs in the test commit. The final handoff verifies both stashes and reports actual Git results.
+
+After Lead's fixes, integrate this review branch normally without force; alternatively cherry-pick the final test/documentation commit if the earlier review content is already present. The merge checkpoint contains no reviewer production edits. Keep Lead's shared-contract/R1 changes and do not restore either formatting stash over them. Rerun `sh tests/backend/run.sh`, `npm run test:contracts`, and `npm run typecheck` on the integrated commit. Expect the four known policy failures to disappear only after their fixes; the two excerpt-provenance failures remain until B-R3 is addressed. Existing contract R1/TODO is outside this round and was not rerun or modified.
+
+No Docker startup, browser, live provider/model selection, final generated response assembly, or integrated UI check was executed this round. Docker files and Lead's earlier observations were read only. Passing tool-map checks establish mocked execution provenance, not final-answer accuracy, a real external search, semantic completeness of requirements, or medical/food-safety reliability. A model-step cap alone still does not bound parallel tools or elapsed time; the durable tests exercise actual shared counters and the separate request timer.
+
+### Integrated browser acceptance: correction with no proposal (not executed)
+
+1. Acknowledge adulthood and explicitly confirm a complete kitchen (pan plus hot plate). Submit `my pan broke` and exercise a response whose public confirmation-needed flag is true and `inventoryProposal` is null. Use a controlled response fixture if live generation cannot reliably produce this case. The pinned backend has the flag internally at `src/lib/server/chat.ts:33` but does not expose it in the final response at `:170`; verify the agreed contract field after Lead integrates it.
+2. Expect a visible complete-kitchen confirmation flow and blocked chat submission. A null proposal must not dismiss the unresolved correction, silently reuse the old equipment, or unblock chat. Dismissing a proposal/editor or changing only one category must not count as complete confirmation.
+3. Explicitly confirm both cookware and heat-source categories, including explicit empty lists if appropriate. Expect the full snapshot to replace prior equipment, revision to advance, and chat to unblock only after this action.
+4. Repeat the correction, leave confirmation unresolved, and press Clear session. Expect confirmation-needed state, proposals, profile/equipment, chat/draft/error/source/check/metric data, and age acknowledgement to reset; a new session must require acknowledgement again.
+5. During a third iteration, delay the correction response, clear, acknowledge and start a new request, then release the old success, failure, and finally completion in separate runs. Expect all old completions to be ignored: no restored confirmation block/profile/messages and no clearing of the new request's loading state.
+
+Stop at reviewer handoff; do not poll or claim later Lead fixes were tested.
