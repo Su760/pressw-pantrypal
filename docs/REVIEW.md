@@ -204,3 +204,42 @@ No Docker startup, browser, live provider/model selection, final generated respo
 5. During a third iteration, delay the correction response, clear, acknowledge and start a new request, then release the old success, failure, and finally completion in separate runs. Expect all old completions to be ignored: no restored confirmation block/profile/messages and no clearing of the new request's loading state.
 
 Stop at reviewer handoff; do not poll or claim later Lead fixes were tested.
+
+## B-R3 production fix round — integrated checkpoint 9881003
+
+Started clean on `review/quality` at `e4f5db68db33eaf6558440298154d9f6df99c97c`. Both existing formatting stashes were inspected and preserved without restoration: `f958558f0d53e90cf29df27799d312fbca68ded7` and `3d3f6d59c326195fc849042c4eceb825a3f093c2`. Fetched origin and merged exactly `9881003907ec1f6ec6d485d4fcc86957a30a5b7d`, producing merge commit `6a1c6398717501cbd2ebb5d5b0a22190f301a7a1`. Its case-insensitive UUID uniqueness fix, active R1 regression, and public `inventoryNeedsConfirmation` flag are retained.
+
+User authorization covers this narrow plan, commit and non-force push. Task notes were read; this append-only evidence holds the plan because tasks/ is outside the current edit boundary. Only `validProposal` in `src/lib/server/policy.ts`, related `tests/backend/policy.test.cjs` assertions, and this appended review section may change. `SYSTEM_POLICY`, response assembly, package/client/presentation files remain Lead-owned.
+
+- [x] Merge the exact checkpoint and run the integrated backend baseline.
+- [x] Confirm root cause and add related negative/affirmative/empty-category tests before fixing.
+- [x] Check the surrounding source sentence and reject ambiguous repeated excerpts; keep existing provenance/replacement checks.
+- [x] Run backend tests, contract tests and typecheck; record actual results and scoped integration instructions.
+
+**Observed baseline:** `sh tests/backend/run.sh` compiled successfully, then exited 1: **41 tests, 39 passed, 2 failed, 0 skipped/TODO**. All four known age/inventory false positives passed after integration. Both existing B-R3 cases still failed with `true !== false`: negated and conditional user sentences were accepted when the evidence quote omitted that context. At integrated baseline `src/lib/server/policy.ts:63`, substring membership proves only location; `:66`–`:94` then assess the selected excerpt instead of surrounding source language. This reproduces B-R3 without any live model/provider call.
+
+The added assertions protect a trailing condition, repeated ambiguous evidence, an affirmative sentence surrounded by unrelated negative/question sentences, and explicit empty categories. Their expected values are independent of the implementation; the two original failing assertions stay active.
+
+### Fix and verification evidence
+
+`validProposal` now locates the excerpt in the latest user message, rejects repeated case-insensitive occurrences as ambiguous, and includes surrounding sentence text when checking negation/conditions. Punctuation ends the context; newlines and semicolons do not silently remove a qualifying prefix. Existing exact-substring/latest-user checks, item grounding, affirmative wording, complete replacement shape, and explicit empty-category evidence remain in place. No new helper, dependency, prompt guidance, response assembly, or contract change was needed.
+
+This prevents a cropped affirmative excerpt from becoming an accepted ownership proposal when its source sentence says that ownership is untrue or conditional. Rejection feeds the existing backend clarification/confirmation path; the live model and browser flow were not exercised here.
+
+| Stage / command                                    | Observed result                                                                                                                                   |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Integrated baseline, `sh tests/backend/run.sh`     | 39/41 passed; the two original B-R3 assertions failed with `true !== false`; four known age/inventory cases now pass.                             |
+| Added tests before production change, same command | 41/45 passed; original two plus trailing-condition and ambiguous-repeat tests failed with `true !== false`. Positive/empty-category cases passed. |
+| After fix, `sh tests/backend/run.sh`               | **45/45 passed**, exit 0; 0 failed, skipped, cancelled or TODO. Both original B-R3 assertions remain active.                                      |
+| `npm run test:contracts`                           | **13/13 passed**, exit 0; R1 executes normally with no TODO.                                                                                      |
+| `npm run typecheck`                                | Exit 0 (`next typegen && tsc --noEmit`).                                                                                                          |
+
+Node's existing experimental MockTimers warning remains visible in backend output; it is not a failing check. All verification used the existing native Node/TypeScript setup with provider credentials removed and unmocked fetch blocked. Build, Docker, browser and live model behavior were not run in this narrow round.
+
+**Limitations:** This is conservative, punctuation-based English context validation, not comprehensive language understanding. A negating/conditional keyword in the same sentence can cause clarification even if unrelated to equipment; repeated excerpts are rejected even if both are affirmative. Context across separate sentences, reported speech, unusual punctuation, abbreviations and semantic paraphrases remain outside the demonstrated guarantees. Explicit UI confirmation remains necessary. No claim of complete ownership inference or prompt-injection resistance.
+
+**Scope/preservation:** Unexplained formatting changes recurred during file writes, including outside `validProposal`. Only the ownership-context block, appended policy tests and this appended review evidence are staged for the fix. The existing two formatting stashes stay untouched, as does the separately created frontend stash. Any remaining formatting diff is preserved separately at handoff rather than included in the fix; no unrelated production or client behavior is changed.
+
+**Lead integration:** Cherry-pick the final fix commit reported in the handoff onto a branch that already contains checkpoint `9881003` and reviewer tests from `e4f5db6`, or merge `review/quality` normally to bring that ancestry along. Preserve Lead's later `SYSTEM_POLICY` recipe-reference and response-assembly work when resolving any conflict; the fix belongs only inside `validProposal`. Rerun `sh tests/backend/run.sh`, `npm run test:contracts`, and `npm run typecheck` on the resulting integrated commit. Do not apply the formatting stashes.
+
+**Manual integrated check, not executed:** With the confirmation UI available, submit each negated/conditional sentence listed in B-R3, supplying its affirmative fragment as a controlled proposal fixture. Expect rejection/clarification with no accepted replacement. Then submit an explicit affirmative pan/hot-plate statement; expect a confirmable complete replacement. Submit an explicit no-cookware/no-heat statement; expect an empty replacement that still requires confirmation. Repeat the earlier null-proposal confirmation/Clear-session stale-response acceptance script after Lead's response-assembly changes.

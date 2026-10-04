@@ -64,10 +64,21 @@ export function validProposal(
   )
     return false;
   const quote = proposal.evidenceQuote.toLocaleLowerCase();
-  // A quoted item is not necessarily owned: refuse negative/conditional ownership.
+  const source = basis.content.toLocaleLowerCase();
+  const quoteStart = source.indexOf(quote);
+  // Repeated excerpts do not identify an unambiguous ownership statement.
+  if (quoteStart < 0 || source.indexOf(quote, quoteStart + 1) !== -1)
+    return false;
+  // Include the surrounding source sentence(s), so a model cannot crop away
+  // negation or a condition. Keep newlines/semicolons inside this context.
+  const before = source.slice(0, quoteStart).split(/[.!?]/).at(-1) ?? "";
+  const after = /[.!?]$/.test(quote)
+    ? ""
+    : source.slice(quoteStart + quote.length).split(/[.!?]/)[0];
+  const context = before + quote + after;
   if (
-    /\b(don['’]t|do not|no longer|without|broken|sold|wish|if|might|could)\b/i.test(
-      quote,
+    /\b(don['’]t|do not|not|never|no longer|without|broken|sold|wish|if|unless|might|could)\b/i.test(
+      context,
     )
   )
     return false;

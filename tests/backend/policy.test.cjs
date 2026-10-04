@@ -120,3 +120,44 @@ test("proposal cannot infer an unspecified empty equipment category", () => {
     false,
   );
 });
+
+test("proposal rejects a condition following the selected ownership excerpt", () => {
+  const req = request("I have a pan and a hot plate if I borrow them.");
+  assert.equal(
+    validProposal(proposal(req, "I have a pan and a hot plate"), req),
+    false,
+  );
+});
+
+test("proposal rejects repeated evidence with ambiguous ownership context", () => {
+  const quote = "I have a pan and a hot plate";
+  const req = request(`${quote}. It is not true that ${quote}.`);
+  assert.equal(validProposal(proposal(req, quote), req), false);
+});
+
+test("explicit affirmative ownership remains valid beside unrelated negative or conditional sentences", () => {
+  const req = request(
+    "I don't have garlic. I have a pan and a hot plate. Could you suggest dinner?",
+  );
+  for (const quote of [
+    "I have a pan and a hot plate",
+    "I have a pan and a hot plate.",
+  ]) {
+    assert.equal(validProposal(proposal(req, quote), req), true);
+  }
+});
+
+test("complete replacement proposals preserve explicitly empty equipment categories", () => {
+  for (const [text, cookware] of [
+    ["I have no cookware and no heat sources.", []],
+    ["I have a pan and no heat sources.", ["pan"]],
+  ]) {
+    const req = request(text);
+    const replacement = {
+      ...proposal(req),
+      equipment: { status: "confirmed", cookware, heatSources: [] },
+    };
+    assert.equal(validProposal(replacement, req), true);
+    assert.deepEqual(replacement.equipment.heatSources, []);
+  }
+});
